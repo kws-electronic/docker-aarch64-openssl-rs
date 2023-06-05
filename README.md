@@ -48,6 +48,40 @@ To speed up the build process you can map your local crates.io cache into the co
 docker run -v ~/.cargo/registry:/root/.cargo/registry [...]
 ```
 
+### `docker-compose.yml`
+
+The following `docker-compose.yml` contains an exemplary configuration that you can use in your project: 
+
+```yml
+# docker-compose.yml
+
+version: '3.9'
+
+services:
+  debug:
+    image: ghcr.io/kws-electronic/aarch64-openssl-rs:latest
+    volumes:
+      # map project directory to container's working directory (required)
+      - .:/usr/local/src
+      # use local crates.io cache in container (optional; speeds up the build for local development)
+      - ~/.cargo/registry:/root/.cargo/registry
+
+  release:
+    image: ghcr.io/kws-electronic/aarch64-openssl-rs:latest
+    volumes: # see debug service for explanation of volumes
+      - .:/usr/local/src
+      - ~/.cargo/registry:/root/.cargo/registry
+
+    command: [
+      "build",
+      "--release",
+      # target & linker either have to passed as flags here or be
+      # configured in your .cargo/config.toml file (see README)
+      "--target=aarch64-unknown-linux-gnu",
+      "--config=target.aarch64-unknown-linux-gnu.linker=\"aarch64-linux-gnu-gcc\""
+    ]
+```
+
 ## Configuration
 
 There are a couple of docker build-time variables available to configure the build. These can be passed to the `docker build` command using the `--build-arg <varname>=<value>` flag.
