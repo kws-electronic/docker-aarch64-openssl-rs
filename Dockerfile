@@ -75,6 +75,7 @@ RUN make install
 
 # Install Rust
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain $RUST_VERSION --target aarch64-unknown-linux-gnu
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Cleanup
 RUN apt-get remove -y make libfindbin-libs-perl binutils curl
