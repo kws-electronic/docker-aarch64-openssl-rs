@@ -82,4 +82,7 @@ RUN apt-get remove -y make libfindbin-libs-perl binutils curl
 RUN rm -rf /usr/local/src/*
 
 ENV OPENSSL_DIR=/usr/local
-WORKDIR /root
+
+WORKDIR /usr/local/src
+ENTRYPOINT ["cargo"]
+CMD ["build", "--target=aarch64-unknown-linux-gnu", "--config=target.aarch64-unknown-linux-gnu.linker=\"aarch64-linux-gnu-gcc\""]
