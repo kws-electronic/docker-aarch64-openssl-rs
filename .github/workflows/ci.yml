@@ -2,6 +2,8 @@ name: ci
 
 on:
     push:
+        paths-ignore:
+            - README.md
 
 jobs:
     docker:
@@ -25,4 +27,4 @@ jobs:
               with:
                   file: ./Dockerfile
                   push: ${{github.ref == 'refs/heads/main'}}
-                  tags: ghcr.io/kws-electronic/aarch64-openssl-rs:latest
+                  tags: ghcr.io/kws-electronic/aarch64-openssl-rs
