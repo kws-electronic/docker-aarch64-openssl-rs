@@ -1,5 +1,4 @@
-FROM ubuntu:22.04 AS ubuntu_gcc
-
+FROM ubuntu:22.04 AS gcc_downloader
 ARG GCC_VERSION='9.2-2019.12'
 
 RUN apt-get update -y \
@@ -8,25 +7,32 @@ RUN apt-get update -y \
         xz-utils \
         curl
 
-
 WORKDIR /usr/local/src
 RUN curl -O -L https://developer.arm.com/-/media/Files/downloads/gnu-a/$GCC_VERSION/binrel/gcc-arm-$GCC_VERSION-x86_64-aarch64-none-linux-gnu.tar.xz
 RUN tar -xf ./gcc-arm-$GCC_VERSION-x86_64-aarch64-none-linux-gnu.tar.xz
-RUN cp -r gcc-arm-$GCC_VERSION-x86_64-aarch64-none-linux-gnu/* /usr/
+RUN mv gcc-arm-$GCC_VERSION-x86_64-aarch64-none-linux-gnu/ /output
 
-RUN rm -rf /usr/local/src
+####################################################################################################
 
-RUN aarch64-none-linux-gnu-gcc --version
+FROM ubuntu:22.04 AS ubuntu_gcc
 
-RUN ln /usr/bin/aarch64-none-linux-gnu-gcc /usr/bin/aarch64-linux-gnu-gcc
+RUN apt-get update -y \
+    && apt-get upgrade -y \
+    && apt-get install -y curl build-essential
+
+COPY --from=gcc_downloader /output/ /usr/
+
+RUN ln -s /usr/bin/aarch64-none-linux-gnu-gcc /usr/bin/aarch64-linux-gnu-gcc
 
 ENV CC=aarch64-linux-gnu-gcc
+
+RUN aarch64-linux-gnu-gcc --version
 
 ####################################################################################################
 
 FROM ubuntu_gcc AS lib_builder
 
-RUN apt-get install -y build-essential make
+RUN apt-get install -y make libfindbin-libs-perl
 
 ####################################################################################################
 
@@ -37,10 +43,10 @@ ARG TARGET_OPENSSL_DIR='/usr'
 
 WORKDIR /usr/local/src
 RUN curl https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz | tar xz
-RUN mv openssl-$OPENSSL_VERSION openssl
-WORKDIR ./openssl
-RUN ./Configure linux-aarch64 shared --openssldir=$TARGET_OPENSSL_DIR
+WORKDIR ./openssl-$OPENSSL_VERSION
+RUN ./Configure linux-aarch64 shared --openssldir=$TARGET_OPENSSL_DIR --prefix=/output
 RUN make
+RUN make install
 
 ####################################################################################################
 
@@ -50,10 +56,10 @@ ARG ZLIB_VERSION='1.2.13'
 
 WORKDIR /usr/local/src
 RUN curl https://zlib.net/zlib-$ZLIB_VERSION.tar.gz | tar xz
-RUN mv zlib-$ZLIB_VERSION zlib
-WORKDIR ./zlib
+WORKDIR ./zlib-$ZLIB_VERSION
 RUN ./configure
 RUN make
+RUN make install prefix=/output
 
 ####################################################################################################
 
@@ -61,27 +67,16 @@ FROM ubuntu_gcc
 
 ARG RUST_VERSION='1.69.0'
 
-RUN apt-get install -y make libfindbin-libs-perl binutils build-essential
-
 # Install OpenSSL
-COPY --from=openssl_builder /usr/local/src/ /usr/local/src/
-WORKDIR /usr/local/src/openssl
-RUN make install
+COPY --from=openssl_builder /output/ /usr/local/
+ENV OPENSSL_DIR=/usr/local
 
 # Install zlib
-COPY --from=zlib_builder /usr/local/src/ /usr/local/src/
-WORKDIR /usr/local/src/zlib
-RUN make install
+COPY --from=zlib_builder /output/ /usr/local/
 
 # Install Rust
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain $RUST_VERSION --target aarch64-unknown-linux-gnu
 ENV PATH="/root/.cargo/bin:${PATH}"
-
-# Cleanup
-RUN apt-get remove -y make libfindbin-libs-perl binutils curl
-RUN rm -rf /usr/local/src/*
-
-ENV OPENSSL_DIR=/usr/local
 
 WORKDIR /usr/local/src
 ENTRYPOINT ["cargo"]
