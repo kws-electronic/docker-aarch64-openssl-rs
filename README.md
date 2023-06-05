@@ -9,7 +9,7 @@ You can either use the [public docker image](https://github.com/kws-electronic/d
 When running the image, `cargo` is the default entry point, so if you just want to use `cargo`, you only need to pass the cargo-command (i.e. `build`) and options. The working directory is `/usr/local/src`, therefore you need to bind a volume from you rust project to that directory.
 
 ### Building a Rust project via `cargo build`
-The default command in the docker container already specifies the target (`aarch64-unknown-linux-gnu`) and the linker (`aarch64-linux-gnu-gcc`), therefore if you just want to build without passing any extra options, you can do it like this:
+The default command in the docker container already specifies the target (`aarch64-unknown-linux-gnu`) and the linker (`aarch64-linux-gnu-gcc`), therefore if you just want to build (debug) without passing any extra options, you can do it like this:
 ```sh
 docker run --rm -v .:/usr/local/src ghcr.io/kws-electronic/aarch64-openssl-rs
 ```
