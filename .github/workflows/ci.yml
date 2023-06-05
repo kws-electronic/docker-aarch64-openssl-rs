@@ -5,6 +5,9 @@ on:
         paths-ignore:
             - README.md
 
+permissions:
+    packages: write
+
 jobs:
     docker:
         runs-on: ubuntu-latest
