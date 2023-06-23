@@ -5,12 +5,14 @@ RUN apt-get update -y \
     && apt-get upgrade -y \
     && apt-get install -y \
         xz-utils \
-        curl
+        curl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/local/src
-RUN curl -O -L https://developer.arm.com/-/media/Files/downloads/gnu-a/$GCC_VERSION/binrel/gcc-arm-$GCC_VERSION-x86_64-aarch64-none-linux-gnu.tar.xz
-RUN tar -xf ./gcc-arm-$GCC_VERSION-x86_64-aarch64-none-linux-gnu.tar.xz
-RUN mv gcc-arm-$GCC_VERSION-x86_64-aarch64-none-linux-gnu/ /output
+RUN curl -O -L https://developer.arm.com/-/media/Files/downloads/gnu-a/$GCC_VERSION/binrel/gcc-arm-$GCC_VERSION-x86_64-aarch64-none-linux-gnu.tar.xz \
+    && tar -xf ./gcc-arm-$GCC_VERSION-x86_64-aarch64-none-linux-gnu.tar.xz \
+    && mv gcc-arm-$GCC_VERSION-x86_64-aarch64-none-linux-gnu/ /output
 
 ####################################################################################################
 
@@ -18,7 +20,9 @@ FROM ubuntu:22.04 AS ubuntu_gcc
 
 RUN apt-get update -y \
     && apt-get upgrade -y \
-    && apt-get install -y curl build-essential
+    && apt-get install -y curl build-essential \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=gcc_downloader /output/ /usr/
 
@@ -32,7 +36,11 @@ RUN aarch64-linux-gnu-gcc --version
 
 FROM ubuntu_gcc AS lib_builder
 
-RUN apt-get install -y make libfindbin-libs-perl
+RUN apt-get update -y \
+    && apt-get upgrade -y \
+    && apt-get install -y make libfindbin-libs-perl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 ####################################################################################################
 
@@ -42,11 +50,12 @@ ARG OPENSSL_VERSION='3.0.0'
 ARG TARGET_OPENSSL_DIR='/usr'
 
 WORKDIR /usr/local/src
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN curl https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz | tar xz
-WORKDIR ./openssl-$OPENSSL_VERSION
-RUN ./Configure linux-aarch64 shared --openssldir=$TARGET_OPENSSL_DIR --prefix=/output
-RUN make
-RUN make install
+WORKDIR /usr/local/src/openssl-$OPENSSL_VERSION
+RUN ./Configure linux-aarch64 shared --openssldir=$TARGET_OPENSSL_DIR --prefix=/output \
+    && make \
+    && make install
 
 ####################################################################################################
 
@@ -55,11 +64,12 @@ FROM lib_builder AS zlib_builder
 ARG ZLIB_VERSION='1.2.13'
 
 WORKDIR /usr/local/src
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN curl https://zlib.net/zlib-$ZLIB_VERSION.tar.gz | tar xz
-WORKDIR ./zlib-$ZLIB_VERSION
-RUN ./configure
-RUN make
-RUN make install prefix=/output
+WORKDIR /usr/local/src/zlib-$ZLIB_VERSION
+RUN ./configure \
+    && make \
+    && make install prefix=/output
 
 ####################################################################################################
 
@@ -75,6 +85,7 @@ ENV OPENSSL_DIR=/usr/local
 COPY --from=zlib_builder /output/ /usr/local/
 
 # Install Rust
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain $RUST_VERSION --target aarch64-unknown-linux-gnu
 ENV PATH="/root/.cargo/bin:${PATH}"
 
