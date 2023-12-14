@@ -6,12 +6,14 @@ This docker image can be used to cross compile Rust programs with a OpenSSL depe
 
 You can either use the [public docker image](https://github.com/kws-electronic/docker-aarch64-openssl-rs/pkgs/container/aarch64-openssl-rs) (`ghcr.io/kws-electronic/aarch64-openssl-rs`) or build the image with the provided Dockerfile yourself, if you need other versions of OpenSSL, GCC, zlib or Rust than specified [in the table below](#configuration).
 
+The public docker image is available for multiple different rust version (see [here](https://github.com/kws-electronic/docker-aarch64-openssl-rs/pkgs/container/aarch64-openssl-rs/versions?filters%5Bversion_type%5D=tagged)).
+
 When running the image, `cargo` is the default entry point, so if you just want to use `cargo`, you only need to pass the cargo-command (i.e. `build`) and options. The working directory is `/usr/local/src`, therefore you need to bind a volume from you rust project to that directory.
 
 ### Building a Rust project via `cargo build`
 The default command in the docker container already specifies the target (`aarch64-unknown-linux-gnu`) and the linker (`aarch64-linux-gnu-gcc`), therefore if you just want to build (debug) without passing any extra options, you can do it like this:
 ```sh
-docker run --rm -v .:/usr/local/src ghcr.io/kws-electronic/aarch64-openssl-rs
+docker run --rm -v .:/usr/local/src ghcr.io/kws-electronic/aarch64-openssl-rs:stable
 ```
 _(This example assumes that your working directory is located in your Rust project. `--rm` is theoretically not needed, but ensures the container is removed once done)_
 
@@ -34,10 +36,10 @@ or
 Therefore actually running `cargo build` in the container (i.e. with the `--release` flag) would look something like this:
 ```sh
 # When .cargo/config.toml includes target and linker
-docker run --rm -v .:/usr/local/src ghcr.io/kws-electronic/aarch64-openssl-rs build --release
+docker run --rm -v .:/usr/local/src ghcr.io/kws-electronic/aarch64-openssl-rs:stable build --release
 
 # Passing target and linker as flags
-docker run --rm -v .:/usr/local/src ghcr.io/kws-electronic/aarch64-openssl-rs build --release --target=aarch64-unknown-linux-gnu --config=target.aarch64-unknown-linux-gnu.linker=\"aarch64-linux-gnu-gcc\"
+docker run --rm -v .:/usr/local/src ghcr.io/kws-electronic/aarch64-openssl-rs:stable build --release --target=aarch64-unknown-linux-gnu --config=target.aarch64-unknown-linux-gnu.linker=\"aarch64-linux-gnu-gcc\"
 ```
 _(This example assumes that your working directory is located in your Rust project. `--rm` is theoretically not needed, but ensures the container is removed once done)_
 
@@ -59,7 +61,7 @@ version: '3.9'
 
 services:
   debug:
-    image: ghcr.io/kws-electronic/aarch64-openssl-rs:latest
+    image: ghcr.io/kws-electronic/aarch64-openssl-rs:stable
     volumes:
       # map project directory to container's working directory (required)
       - .:/usr/local/src
@@ -67,7 +69,7 @@ services:
       - ~/.cargo/registry:/root/.cargo/registry
 
   release:
-    image: ghcr.io/kws-electronic/aarch64-openssl-rs:latest
+    image: ghcr.io/kws-electronic/aarch64-openssl-rs:stable
     volumes: # see debug service for explanation of volumes
       - .:/usr/local/src
       - ~/.cargo/registry:/root/.cargo/registry

@@ -1,6 +1,7 @@
 name: ci
 
 on:
+    workflow_dispatch:
     push:
         paths-ignore:
             - README.md
@@ -10,6 +11,9 @@ permissions:
 
 jobs:
     docker:
+        strategy:
+            matrix:
+                rust_version: ['1.69', '1.70', '1.71', '1.72', '1.73', 'stable']
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
@@ -28,6 +32,8 @@ jobs:
             - name: Build and push
               uses: docker/build-push-action@v4
               with:
+                  build-args: |
+                    RUST_VERSION=${{matrix.rust_version}}
                   file: ./Dockerfile
                   push: ${{github.ref == 'refs/heads/main'}}
-                  tags: ghcr.io/kws-electronic/aarch64-openssl-rs
+                  tags: ghcr.io/kws-electronic/aarch64-openssl-rs:${{matrix.rust_version}}
