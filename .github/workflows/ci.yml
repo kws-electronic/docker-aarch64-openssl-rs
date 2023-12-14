@@ -41,3 +41,5 @@ jobs:
                   file: ./Dockerfile
                   push: ${{github.ref == 'refs/heads/main'}}
                   tags: ghcr.io/kws-electronic/aarch64-openssl-rs:${{matrix.docker_tag || matrix.rust_version}}
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
