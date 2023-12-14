@@ -89,7 +89,7 @@ There are a couple of docker build-time variables available to configure the bui
 | Name                 | Default Value | Description                                                                                  |
 | :------------------- | :------------ | :------------------------------------------------------------------------------------------- |
 | `GCC_VERSION`        | `9.2-2019.12` | GCC version to download from developer.arm.com                                               |
-| `RUST_VERSION`       | `1.69.0`      | Rust version to install                                                                      |
-| `ZLIB_VERSION`       | `1.2.13`      | ZLib version to install                                                                      |
+| `RUST_VERSION`       | `1.74.0`      | Rust version to install                                                                      |
+| `ZLIB_VERSION`       | `1.3`         | ZLib version to install                                                                      |
 | `OPENSSL_VERSION`    | `3.0.0`       | OpenSSL version to install                                                                   |
 | `TARGET_OPENSSL_DIR` | `/usr`        | OpenSSL directory on target machine (will be passed as `--openssldir` to `./Configure` call) |
