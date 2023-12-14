@@ -13,10 +13,11 @@ jobs:
     docker:
         strategy:
             matrix:
-                rust_version: ['1.69', '1.70', '1.71', '1.72', '1.73', 'stable']
+                rust_version: ['stable', '1.73', '1.72', '1.71', '1.70', '1.69']
                 include:
                 - rust_version: 'stable'
                   docker_tag: 'latest'
+            max-parallel: 1
 
         runs-on: ubuntu-latest
         steps:
