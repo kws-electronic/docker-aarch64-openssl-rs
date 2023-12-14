@@ -61,7 +61,7 @@ RUN ./Configure linux-aarch64 shared --openssldir=$TARGET_OPENSSL_DIR --prefix=/
 
 FROM lib_builder AS zlib_builder
 
-ARG ZLIB_VERSION='1.2.13'
+ARG ZLIB_VERSION='1.3'
 
 WORKDIR /usr/local/src
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
