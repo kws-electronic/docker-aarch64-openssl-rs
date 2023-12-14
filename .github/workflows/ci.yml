@@ -14,6 +14,10 @@ jobs:
         strategy:
             matrix:
                 rust_version: ['1.69', '1.70', '1.71', '1.72', '1.73', 'stable']
+                include:
+                - rust_version: 'stable'
+                  docker_tag: 'latest'
+
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
@@ -36,4 +40,4 @@ jobs:
                     RUST_VERSION=${{matrix.rust_version}}
                   file: ./Dockerfile
                   push: ${{github.ref == 'refs/heads/main'}}
-                  tags: ghcr.io/kws-electronic/aarch64-openssl-rs:${{matrix.rust_version}}
+                  tags: ghcr.io/kws-electronic/aarch64-openssl-rs:${{matrix.docker_tag || matrix.rust_version}}
