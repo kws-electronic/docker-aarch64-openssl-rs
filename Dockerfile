@@ -75,7 +75,7 @@ RUN ./configure \
 
 FROM ubuntu_gcc
 
-ARG RUST_VERSION='1.69.0'
+ARG RUST_VERSION='1.74.0'
 
 # Install OpenSSL
 COPY --from=openssl_builder /output/ /usr/local/
